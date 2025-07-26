@@ -1,0 +1,54 @@
+#include <DHT.h>
+
+// Pin definitions
+#define DHTPIN 2             // DHT22 data pin
+#define DHTTYPE DHT22        // DHT22 sensor type
+#define HEATER_LED 3         // LED representing heater
+#define BUZZER 4             // Buzzer for overheat alert
+
+DHT dht(DHTPIN, DHTTYPE);    // Create DHT object
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+
+  pinMode(HEATER_LED, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+
+  digitalWrite(HEATER_LED, LOW);  // Initial state
+  digitalWrite(BUZZER, LOW);
+}
+
+void loop() {
+  float temp = dht.readTemperature();  // Read temperature in Celsius
+
+  if (isnan(temp)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
+
+  Serial.print("Temperature: ");
+  Serial.print(temp);
+  Serial.println(" °C");
+
+  if (temp < 40.0) {
+    // Too cold → turn on heater
+    digitalWrite(HEATER_LED, HIGH);
+    digitalWrite(BUZZER, LOW);
+    Serial.println("State: Heating");
+  }
+  else if (temp >= 40.0 && temp < 50.0) {
+    // Stable → turn off heater and buzzer
+    digitalWrite(HEATER_LED, LOW);
+    digitalWrite(BUZZER, LOW);
+    Serial.println("State: Stable");
+  }
+  else {
+    // Overheat → turn off heater, turn on buzzer
+    digitalWrite(HEATER_LED, LOW);
+    digitalWrite(BUZZER, HIGH);
+    Serial.println("State: Overheat! Alert!");
+  }
+
+  delay(2000);  // Wait for 2 seconds
+}
